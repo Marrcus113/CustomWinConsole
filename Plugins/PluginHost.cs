@@ -31,6 +31,13 @@ public class PluginHost : IPluginHost
         Console.WriteLine(text);
     }
 
+    public void WriteLine(string text, ConsoleColor color)
+    {
+        Console.ForegroundColor = color;
+        Console.WriteLine(text);
+        Console.ResetColor();
+    }
+
     public void WriteError(string text)
     {
         Console.ForegroundColor = ConsoleColor.Red;
