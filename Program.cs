@@ -15,6 +15,7 @@ namespace CustomWinConsole;
 class Program
 {
     static string currentDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+    public static string CurrentDir => currentDir;
     static List<string> history = new();
     static int historyIndex = -1;
     static bool running = true;
@@ -33,6 +34,7 @@ class Program
     static List<string> todoList = new();
     static string todoFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".customwinconsole_todo.json");
     static Stopwatch? activeStopwatch;
+    static PluginManager? pluginManager;
 
     static void Main()
     {
@@ -40,6 +42,8 @@ class Program
         Console.Title = "CustomWinConsole";        EnableVirtualTerminal();
         Console.OutputEncoding = Encoding.UTF8;
         InitBuiltins();
+        pluginManager = new PluginManager(builtins);
+        pluginManager.LoadAll();
         LoadAliases();
 
         PrintBanner();
@@ -1989,6 +1993,35 @@ class Program
         CommandsExtra3.Register(builtins);
         CommandsExtra4.Register(builtins);
         CommandsExtra5.Register(builtins);
+
+        builtins["plugin"] = args =>
+        {
+            if (args.Length == 0) { Console.WriteLine("  Usage: plugin <list|install|remove|repo>"); return; }
+            switch (args[0].ToLower())
+            {
+                case "list":
+                    pluginManager?.ListPlugins();
+                    break;
+                case "install":
+                    if (args.Length < 2) { Console.WriteLine("  Usage: plugin install <name> [url]"); return; }
+                    _ = (pluginManager?.Install(args[1], args.Length > 2 ? args[2] : null));
+                    break;
+                case "remove":
+                    if (args.Length < 2) { Console.WriteLine("  Usage: plugin remove <name>"); return; }
+                    if (pluginManager?.Remove(args[1]) == true)
+                        Console.WriteLine($"  Плагин '{args[1]}' удалён.");
+                    else
+                        Console.WriteLine($"  Плагин '{args[1]}' не найден.");
+                    break;
+                case "repo":
+                    Console.WriteLine("  Репозиторий плагинов:");
+                    Console.WriteLine("  https://github.com/Marrcus113/CustomWinConsolePlugins");
+                    break;
+                default:
+                    Console.WriteLine("  Неизвестная команда. Используй: list, install, remove, repo");
+                    break;
+            }
+        };
     }
 
     static void ShowAliases()
